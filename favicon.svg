@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#0D7377"/>
+  <!-- Caduceus / medical cross -->
+  <rect x="27" y="14" width="10" height="36" rx="2" fill="#fff"/>
+  <rect x="14" y="27" width="36" height="10" rx="2" fill="#fff"/>
+  <!-- Stethoscope arc -->
+  <path d="M20 18 Q20 8 32 8 Q44 8 44 18" fill="none" stroke="#14FFEC" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="20" cy="18" r="2.5" fill="#14FFEC"/>
+  <circle cx="44" cy="18" r="2.5" fill="#14FFEC"/>
+</svg>

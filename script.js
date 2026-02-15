@@ -535,7 +535,8 @@ function initAnimations() {
 // ====================================
 // YouTube Feed (auto-fetch via RSS)
 // ====================================
-// Change this to your YouTube channel ID (found in channel URL or via youtube.com/account_advanced)
+// TODO: Replace with your actual YouTube channel ID (starts with UC...)
+// Find it at: youtube.com/account_advanced or right-click page source on youtube.com/@ABCcancer
 const YOUTUBE_CHANNEL_ID = 'YOUR_CHANNEL_ID';
 const YOUTUBE_VIDEO_COUNT = 6;
 
