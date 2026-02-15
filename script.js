@@ -80,6 +80,9 @@ function initNavigation() {
 // Scroll Effects
 // ====================================
 function initScrollEffects() {
+    // Skip scroll animations if user prefers reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -100px 0px'
@@ -108,65 +111,8 @@ function initScrollEffects() {
 // Blog System
 // ====================================
 function initBlogSystem() {
-    const toggleBlogForm = document.getElementById('toggleBlogForm');
-    const blogFormContainer = document.getElementById('blogFormContainer');
-    const cancelBlogForm = document.getElementById('cancelBlogForm');
-    const blogForm = document.getElementById('blogForm');
-    const blogGrid = document.getElementById('blogGrid');
-
-    // Load blogs from localStorage
+    // Load any previously saved blogs from localStorage
     loadBlogs();
-
-    // Toggle blog form
-    if (toggleBlogForm) {
-        toggleBlogForm.addEventListener('click', function() {
-            blogFormContainer.classList.toggle('active');
-        });
-    }
-
-    // Cancel blog form
-    if (cancelBlogForm) {
-        cancelBlogForm.addEventListener('click', function() {
-            blogFormContainer.classList.remove('active');
-            blogForm.reset();
-        });
-    }
-
-    // Submit blog form
-    if (blogForm) {
-        blogForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const blogData = {
-                id: Date.now(),
-                title: document.getElementById('blogTitle').value,
-                category: document.getElementById('blogCategory').value,
-                excerpt: document.getElementById('blogExcerpt').value,
-                content: document.getElementById('blogContent').value,
-                image: document.getElementById('blogImage').value,
-                date: new Date().toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                })
-            };
-
-            // Save to localStorage
-            let blogs = JSON.parse(localStorage.getItem('blogs')) || [];
-            blogs.unshift(blogData);
-            localStorage.setItem('blogs', JSON.stringify(blogs));
-
-            // Add to grid
-            addBlogToGrid(blogData);
-
-            // Reset form and hide
-            blogForm.reset();
-            blogFormContainer.classList.remove('active');
-
-            // Show success modal
-            showModal('Blog Post Published!', 'Your article has been successfully published.');
-        });
-    }
 }
 
 function loadBlogs() {
@@ -496,17 +442,20 @@ function showModal(title, message) {
 // Animations
 // ====================================
 function initAnimations() {
-    // Parallax effect for hero shapes
-    window.addEventListener('scroll', function() {
-        const scrolled = window.pageYOffset;
-        const shapes = document.querySelectorAll('.shape');
+    // Skip parallax if user prefers reduced motion
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        // Parallax effect for hero shapes
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const shapes = document.querySelectorAll('.shape');
 
-        shapes.forEach((shape, index) => {
-            const speed = 0.1 + (index * 0.05);
-            const yPos = -(scrolled * speed);
-            shape.style.transform = `translateY(${yPos}px)`;
+            shapes.forEach((shape, index) => {
+                const speed = 0.1 + (index * 0.05);
+                const yPos = -(scrolled * speed);
+                shape.style.transform = `translateY(${yPos}px)`;
+            });
         });
-    });
+    }
 
     // Counter animation for stats (if visible)
     const stats = document.querySelectorAll('.stat-number');

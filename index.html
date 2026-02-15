@@ -328,47 +328,6 @@
                 </p>
             </div>
 
-            <!-- Admin Blog Form (Hidden by default) -->
-            <div class="blog-admin" id="blogAdmin">
-                <button class="btn btn-secondary" id="toggleBlogForm">+ Add New Article</button>
-                <div class="blog-form-container" id="blogFormContainer">
-                    <h3>Create New Blog Post</h3>
-                    <form id="blogForm" class="blog-form">
-                        <div class="form-group">
-                            <label for="blogTitle">Article Title</label>
-                            <input type="text" id="blogTitle" required placeholder="Enter article title">
-                        </div>
-                        <div class="form-group">
-                            <label for="blogCategory">Category</label>
-                            <select id="blogCategory" required>
-                                <option value="">Select category</option>
-                                <option value="cancer-awareness">Cancer Awareness</option>
-                                <option value="treatment">Treatment & Care</option>
-                                <option value="prevention">Prevention</option>
-                                <option value="patient-stories">Patient Stories</option>
-                                <option value="research">Research & Innovation</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="blogExcerpt">Excerpt</label>
-                            <textarea id="blogExcerpt" rows="2" required placeholder="Brief summary (1-2 sentences)"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="blogContent">Content</label>
-                            <textarea id="blogContent" rows="8" required placeholder="Full article content"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="blogImage">Featured Image URL (optional)</label>
-                            <input type="url" id="blogImage" placeholder="https://example.com/image.jpg">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Publish Article</button>
-                            <button type="button" class="btn btn-secondary" id="cancelBlogForm">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
             <!-- Blog Grid -->
             <div class="blog-grid" id="blogGrid">
                 <!-- Sample blog posts - will be dynamically generated -->

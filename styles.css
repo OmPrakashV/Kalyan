@@ -1532,6 +1532,34 @@ p {
 }
 
 /* ====================================
+   Reduced Motion
+   ==================================== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    .gradient-mesh,
+    .shape-1,
+    .shape-2,
+    .shape-3,
+    .scroll-line,
+    .whatsapp-float {
+        animation: none !important;
+    }
+
+    .scroll-indicator {
+        display: none;
+    }
+}
+
+/* ====================================
    Responsive Design
    ==================================== */
 @media (max-width: 1024px) {
