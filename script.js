@@ -399,6 +399,9 @@ function resetRatingStars() {
 // ====================================
 // Contact Form
 // ====================================
+// WhatsApp number (country code + number, no spaces or symbols)
+const WHATSAPP_NUMBER = '919966003251';
+
 function initContactForm() {
     const contactForm = document.getElementById('contactForm');
 
@@ -406,30 +409,44 @@ function initContactForm() {
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const contactData = {
-                name: document.getElementById('contactName').value,
-                phone: document.getElementById('contactPhone').value,
-                email: document.getElementById('contactEmail').value,
-                service: document.getElementById('contactService').value,
-                message: document.getElementById('contactMessage').value,
-                date: new Date().toISOString()
-            };
+            const name = document.getElementById('contactName').value;
+            const phone = document.getElementById('contactPhone').value;
+            const email = document.getElementById('contactEmail').value;
+            const service = document.getElementById('contactService').value;
+            const message = document.getElementById('contactMessage').value;
 
-            // Save to localStorage
+            // Save to localStorage as backup
             let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
-            contacts.push(contactData);
+            contacts.push({ name, phone, email, service, message, date: new Date().toISOString() });
             localStorage.setItem('contacts', JSON.stringify(contacts));
 
-            // In a real implementation, this would send data to a server
-            console.log('Contact form submission:', contactData);
+            // Build WhatsApp message
+            var lines = [];
+            lines.push('*New Appointment Request*');
+            lines.push('');
+            lines.push('*Name:* ' + name);
+            if (phone) lines.push('*Phone:* ' + phone);
+            if (email) lines.push('*Email:* ' + email);
+            if (service) lines.push('*Service:* ' + service);
+            if (message) {
+                lines.push('');
+                lines.push('*Message:*');
+                lines.push(message);
+            }
+
+            var whatsappText = encodeURIComponent(lines.join('\n'));
+            var whatsappUrl = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + whatsappText;
+
+            // Open WhatsApp in new tab
+            window.open(whatsappUrl, '_blank');
 
             // Reset form
             contactForm.reset();
 
             // Show success modal
             showModal(
-                'Appointment Request Received!',
-                'Thank you for reaching out. We will contact you within 24 hours to confirm your appointment.'
+                'Redirecting to WhatsApp!',
+                'Your appointment details have been prepared. Please send the message on WhatsApp to complete your booking.'
             );
         });
     }
