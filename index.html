@@ -12,8 +12,13 @@
 </head>
 <body>
     <!-- WIP Banner — delete this div to remove -->
-    <div style="position:sticky;top:0;z-index:10000;background:rgba(217,119,6,0.01);backdrop-filter:blur(1px);color:#000000;text-align:center;padding:10px;font-family:'Work Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.5px;border-bottom:3px solid rgba(180,83,9,0.7);">
-        🚧 This website is under construction — content may change 🚧
+    <style>
+        @keyframes wip-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+    <div style="position:sticky;top:0;z-index:10000;background:rgba(217,119,6,0.01);backdrop-filter:blur(1px);text-align:center;padding:10px;font-family:'Work Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.5px;border-bottom:3px solid rgba(180,83,9,0.7);">
+        <span style="animation:wip-blink 0.7s ease-in-out infinite;color:#000;">
+            🚧 This website is under construction — content may change 🚧
+        </span>
     </div>
 
     <!-- Navigation -->
