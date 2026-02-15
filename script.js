@@ -29,6 +29,8 @@ function initNavigation() {
         navToggle.addEventListener('click', function() {
             navToggle.classList.toggle('active');
             navMenu.classList.toggle('active');
+            // Lock body scroll when menu is open
+            document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
         });
     }
 
@@ -37,6 +39,7 @@ function initNavigation() {
         link.addEventListener('click', function() {
             navToggle.classList.remove('active');
             navMenu.classList.remove('active');
+            document.body.style.overflow = '';
         });
     });
 

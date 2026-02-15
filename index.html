@@ -15,9 +15,9 @@
     <style>
         @keyframes wip-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
-    <div style="position:sticky;top:0;z-index:10000;background:rgba(217,119,6,0.01);backdrop-filter:blur(1px);text-align:center;padding:10px;font-family:'Work Sans',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.5px;border-bottom:3px solid rgba(180,83,9,0.7);">
+    <div style="position:sticky;top:0;z-index:10000;background:rgba(217,119,6,0.01);backdrop-filter:blur(1px);text-align:center;padding:8px 1rem;font-family:'Work Sans',sans-serif;font-size:clamp(11px, 3vw, 14px);font-weight:700;letter-spacing:0.5px;border-bottom:3px solid rgba(180,83,9,0.7);">
         <span style="animation:wip-blink 0.7s ease-in-out infinite;color:#000;">
-            🚧 This website is under construction — content may change 🚧
+            🚧 Under construction — content may change 🚧
         </span>
     </div>
 
@@ -662,6 +662,18 @@
             <p class="modal-message" id="modalMessage">Your submission has been received.</p>
             <button class="btn btn-primary" id="closeModal">Close</button>
         </div>
+    </div>
+
+    <!-- Mobile sticky CTA bar -->
+    <div class="mobile-cta-bar">
+        <a href="tel:+919876543210" class="mobile-cta-btn mobile-cta-call">
+            <span class="mobile-cta-icon">📞</span>
+            <span>Call Now</span>
+        </a>
+        <a href="#contact" class="mobile-cta-btn mobile-cta-book">
+            <span class="mobile-cta-icon">📅</span>
+            <span>Book Appointment</span>
+        </a>
     </div>
 
     <!-- Instagram Embed Script — uncomment when you have a real post ID -->

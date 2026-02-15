@@ -55,6 +55,8 @@ body {
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
 }
 
 /* ====================================
@@ -601,7 +603,7 @@ p {
 
 .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 2rem;
 }
 
@@ -694,7 +696,7 @@ p {
 
 .blog-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
     gap: 2.5rem;
 }
 
@@ -926,7 +928,7 @@ p {
 
 .testimonials-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 2rem;
 }
 
@@ -1415,6 +1417,8 @@ p {
     padding: 3rem;
     border-radius: var(--card-radius);
     max-width: 500px;
+    width: calc(100% - 2rem);
+    margin: 1rem;
     text-align: center;
     animation: scaleIn 0.3s ease-out;
 }
@@ -1500,28 +1504,44 @@ p {
         --section-padding: 60px;
     }
 
+    .nav-container {
+        padding: 1rem 1.5rem;
+    }
+
     .nav-menu {
         position: fixed;
-        top: 80px;
+        top: 0;
         left: -100%;
         width: 100%;
-        height: calc(100vh - 80px);
+        height: 100vh;
         background: var(--white);
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: center;
         padding: 3rem 0;
         gap: 2rem;
         transition: left 0.3s;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        z-index: 999;
     }
 
     .nav-menu.active {
         left: 0;
     }
 
+    .nav-link {
+        font-size: 1.25rem;
+        padding: 0.5rem 1rem;
+    }
+
     .nav-toggle {
         display: flex;
+        z-index: 1000;
+        padding: 0.5rem;
+        min-width: 44px;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
     }
 
     .nav-toggle.active span:nth-child(1) {
@@ -1540,6 +1560,14 @@ p {
         gap: 2rem;
     }
 
+    .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.8125rem;
+    }
+
     .services-grid,
     .blog-grid,
     .testimonials-grid {
@@ -1550,31 +1578,72 @@ p {
         grid-template-columns: 1fr;
     }
 
+    /* Prevent iOS zoom on input focus */
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 16px;
+    }
+
     .hero-cta {
         flex-direction: column;
         align-items: stretch;
     }
 
+    .hero-cta .btn {
+        text-align: center;
+    }
+
     .feedback-form-card,
     .blog-form-container,
     .contact-form-section {
-        padding: 2rem;
+        padding: 1.5rem;
+    }
+
+    .credential-item:hover {
+        transform: none;
     }
 
     .footer-grid {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
+
+    .scroll-indicator {
+        display: none;
+    }
+
+    .modal-content {
+        padding: 2rem;
+    }
+
+    .modal-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+
+    .section-header {
+        margin-bottom: 2.5rem;
+    }
+
+    .section-subtitle {
+        margin-bottom: 2rem;
+    }
 }
 
 @media (max-width: 480px) {
-    .container {
-        padding: 0 1.5rem;
+    :root {
+        --section-padding: 48px;
     }
 
-    h1 { font-size: 2rem; }
-    h2 { font-size: 1.75rem; }
-    h3 { font-size: 1.5rem; }
+    .container {
+        padding: 0 1rem;
+    }
+
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
 
     .hero-badge {
         font-size: 0.75rem;
@@ -1585,6 +1654,12 @@ p {
         font-size: 1rem;
     }
 
+    .hero-stats {
+        flex-direction: column;
+        gap: 1.25rem;
+        padding-top: 2rem;
+    }
+
     .btn {
         padding: 0.875rem 2rem;
         font-size: 0.9375rem;
@@ -1592,7 +1667,142 @@ p {
 
     .service-card,
     .testimonial-card {
-        padding: 2rem 1.5rem;
+        padding: 1.75rem 1.25rem;
+    }
+
+    .blog-content {
+        padding: 1.25rem;
+    }
+
+    .blog-image {
+        height: 180px;
+    }
+
+    .section-label {
+        padding-left: 2.25rem;
+        font-size: 0.75rem;
+    }
+
+    .section-label::before {
+        width: 1.75rem;
+    }
+
+    .contact-item {
+        gap: 1rem;
+    }
+
+    .credential-item {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .credential-icon {
+        font-size: 1.5rem;
+    }
+
+    .hospital-affiliations {
+        padding: 1.25rem;
+    }
+
+    .feedback-form-card,
+    .blog-form-container,
+    .contact-form-section {
+        padding: 1.25rem;
+    }
+
+    .rating-input {
+        font-size: 1.75rem;
+    }
+}
+
+/* ====================================
+   Mobile Sticky CTA Bar
+   ==================================== */
+.mobile-cta-bar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    background: var(--white);
+    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    gap: 0.5rem;
+}
+
+.mobile-cta-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+}
+
+.mobile-cta-call {
+    background: var(--white);
+    color: var(--primary);
+    border: 2px solid var(--primary);
+}
+
+.mobile-cta-book {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: var(--white);
+}
+
+.mobile-cta-icon {
+    font-size: 1.125rem;
+}
+
+@media (max-width: 768px) {
+    .mobile-cta-bar {
+        display: flex;
+    }
+
+    /* Add bottom padding to body so footer isn't hidden behind CTA bar */
+    .footer {
+        padding-bottom: 5rem;
+    }
+}
+
+/* Touch device adjustments — reduce hover-dependent animations */
+@media (hover: none) {
+    .service-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .blog-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .testimonial-card:hover {
+        transform: none;
+    }
+
+    .image-frame:hover {
+        transform: none;
+    }
+
+    .btn-primary:hover {
+        transform: none;
+    }
+
+    .btn-secondary:hover {
+        transform: none;
+    }
+
+    .social-link.youtube:hover,
+    .social-link.instagram:hover {
+        transform: none;
     }
 }
 
