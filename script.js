@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initRatingStars();
     initModal();
     initAnimations();
+    initYouTubeFeed();
 });
 
 // ====================================
@@ -509,6 +510,67 @@ function initAnimations() {
 
     window.addEventListener('scroll', animateStats);
     animateStats(); // Check on load
+}
+
+// ====================================
+// YouTube Feed (auto-fetch via RSS)
+// ====================================
+// Change this to your YouTube channel ID (found in channel URL or via youtube.com/account_advanced)
+const YOUTUBE_CHANNEL_ID = 'YOUR_CHANNEL_ID';
+const YOUTUBE_VIDEO_COUNT = 6;
+
+function initYouTubeFeed() {
+    const grid = document.getElementById('ytGrid');
+    if (!grid) return;
+
+    const rssUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + YOUTUBE_CHANNEL_ID;
+    // Use a public CORS proxy to fetch the RSS feed from the browser
+    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl);
+
+    fetch(proxyUrl)
+        .then(function(res) {
+            if (!res.ok) throw new Error('Feed fetch failed');
+            return res.text();
+        })
+        .then(function(xmlText) {
+            var parser = new DOMParser();
+            var xml = parser.parseFromString(xmlText, 'text/xml');
+            var entries = xml.querySelectorAll('entry');
+
+            if (entries.length === 0) {
+                grid.innerHTML = '<p class="yt-loading">No videos found. Check the channel ID.</p>';
+                return;
+            }
+
+            grid.innerHTML = '';
+            var count = Math.min(entries.length, YOUTUBE_VIDEO_COUNT);
+
+            for (var i = 0; i < count; i++) {
+                var entry = entries[i];
+                var videoId = entry.querySelector('videoId').textContent;
+                var title = entry.querySelector('title').textContent;
+                var thumb = 'https://img.youtube.com/vi/' + videoId + '/mqdefault.jpg';
+
+                var card = document.createElement('a');
+                card.className = 'yt-card';
+                card.href = 'https://www.youtube.com/watch?v=' + videoId;
+                card.target = '_blank';
+                card.rel = 'noopener';
+                card.innerHTML =
+                    '<div class="yt-thumb">' +
+                        '<img src="' + thumb + '" alt="' + sanitizeHTML(title) + '" loading="lazy">' +
+                        '<div class="yt-play">' +
+                            '<svg viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.63 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24L27 14v20" fill="white"/></svg>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="yt-info"><h4>' + sanitizeHTML(title) + '</h4></div>';
+
+                grid.appendChild(card);
+            }
+        })
+        .catch(function() {
+            grid.innerHTML = '<p class="yt-loading">Could not load videos. <a href="https://www.youtube.com/channel/' + YOUTUBE_CHANNEL_ID + '" target="_blank">Visit YouTube channel →</a></p>';
+        });
 }
 
 // ====================================
