@@ -1444,11 +1444,13 @@ p {
     background: var(--white);
     padding: 3rem;
     border-radius: var(--card-radius);
-    max-width: 500px;
+    max-width: 600px;
     width: calc(100% - 2rem);
     margin: 1rem;
     text-align: center;
     animation: scaleIn 0.3s ease-out;
+    max-height: 85vh;
+    overflow-y: auto;
 }
 
 .modal-icon {

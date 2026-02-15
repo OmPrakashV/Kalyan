@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initContactForm();
     initRatingStars();
     initModal();
-    initAnimations();
     initYouTubeFeed();
 });
 
@@ -113,6 +112,19 @@ function initScrollEffects() {
 function initBlogSystem() {
     // Load any previously saved blogs from localStorage
     loadBlogs();
+
+    // Wire up "Read Article" links on sample (static) blog cards
+    document.querySelectorAll('.blog-card[data-blog-title]').forEach(function(card) {
+        var link = card.querySelector('.blog-link');
+        if (link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                var title = card.getAttribute('data-blog-title');
+                var content = card.getAttribute('data-blog-content');
+                showModal(title, content);
+            });
+        }
+    });
 }
 
 function loadBlogs() {
@@ -434,51 +446,22 @@ function showModal(title, message) {
     const modalMessage = document.getElementById('modalMessage');
 
     modalTitle.textContent = title;
-    modalMessage.textContent = message;
-    modal.classList.add('active');
-}
 
-// ====================================
-// Animations
-// ====================================
-function initAnimations() {
-    // Skip parallax if user prefers reduced motion
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        // Parallax effect for hero shapes
-        window.addEventListener('scroll', function() {
-            const scrolled = window.pageYOffset;
-            const shapes = document.querySelectorAll('.shape');
-
-            shapes.forEach((shape, index) => {
-                const speed = 0.1 + (index * 0.05);
-                const yPos = -(scrolled * speed);
-                shape.style.transform = `translateY(${yPos}px)`;
-            });
+    // Preserve line breaks for multi-line content (blog posts)
+    if (message.indexOf('\n') !== -1) {
+        modalMessage.innerHTML = '';
+        message.split('\n\n').forEach(function(para) {
+            var p = document.createElement('p');
+            p.textContent = para;
+            p.style.marginBottom = '1rem';
+            p.style.textAlign = 'left';
+            modalMessage.appendChild(p);
         });
+    } else {
+        modalMessage.textContent = message;
     }
 
-    // Counter animation for stats (if visible)
-    const stats = document.querySelectorAll('.stat-number');
-    let animated = false;
-
-    const animateStats = function() {
-        if (animated) return;
-
-        const statsSection = document.querySelector('.hero-stats');
-        if (!statsSection) return;
-
-        const rect = statsSection.getBoundingClientRect();
-        const isVisible = rect.top <= window.innerHeight && rect.bottom >= 0;
-
-        if (isVisible) {
-            animated = true;
-            // Stats animation would go here
-            // For now, they're static but could be animated with counting effect
-        }
-    };
-
-    window.addEventListener('scroll', animateStats);
-    animateStats(); // Check on load
+    modal.classList.add('active');
 }
 
 // ====================================
@@ -528,7 +511,7 @@ function initYouTubeFeed() {
                 card.rel = 'noopener';
                 card.innerHTML =
                     '<div class="yt-thumb">' +
-                        '<img src="' + thumb + '" alt="' + sanitizeHTML(title) + '" loading="lazy">' +
+                        '<img src="' + thumb + '" alt="' + sanitizeHTML(title) + '" width="320" height="180" loading="lazy" decoding="async">' +
                         '<div class="yt-play">' +
                             '<svg viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.63 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24L27 14v20" fill="white"/></svg>' +
                         '</div>' +
