@@ -666,30 +666,6 @@ p {
     background: var(--white);
 }
 
-.blog-admin {
-    margin-bottom: 4rem;
-    text-align: center;
-}
-
-.blog-form-container {
-    max-width: 800px;
-    margin: 2rem auto 0;
-    padding: 3rem;
-    background: var(--cream);
-    border-radius: var(--card-radius);
-    display: none;
-    animation: fadeInUp 0.5s ease-out;
-}
-
-.blog-form-container.active {
-    display: block;
-}
-
-.blog-form-container h3 {
-    margin-bottom: 2rem;
-    text-align: center;
-}
-
 .blog-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
