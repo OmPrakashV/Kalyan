@@ -23,8 +23,8 @@ function initDeferredSystems() {
     initContactForm();
     initRatingStars();
     initYouTubeFeed();
+    initInstagramFeed();
     initLazyIframes();
-    initDeferredEmbeds();
 }
 
 // ====================================
@@ -482,6 +482,12 @@ function showModal(title, message) {
 const YOUTUBE_CHANNEL_ID = 'YOUR_CHANNEL_ID';
 const YOUTUBE_VIDEO_COUNT = 6;
 
+// Instagram Graph API — set your long-lived access token here.
+// Generate one at https://developers.facebook.com/tools/explorer/
+// then exchange for a long-lived token (valid 60 days, auto-refreshable).
+const INSTAGRAM_ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN';
+const INSTAGRAM_POST_COUNT = 12;
+
 function initYouTubeFeed() {
     const grid = document.getElementById('ytGrid');
     if (!grid) return;
@@ -566,33 +572,177 @@ function initLazyIframes() {
 }
 
 // ====================================
-// Deferred Third-Party Embeds (Instagram)
+// Instagram Feed Slideshow
 // ====================================
-function initDeferredEmbeds() {
-    // Load Instagram embed script only when the media section is near viewport
-    var mediaSection = document.getElementById('media');
-    if (!mediaSection) return;
+function initInstagramFeed() {
+    var container = document.getElementById('instaSlideshow');
+    if (!container) return;
 
-    if ('IntersectionObserver' in window) {
-        var observer = new IntersectionObserver(function(entries) {
-            entries.forEach(function(entry) {
-                if (entry.isIntersecting) {
-                    var script = document.createElement('script');
-                    script.src = '//www.instagram.com/embed.js';
-                    script.async = true;
-                    document.body.appendChild(script);
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { rootMargin: '300px' });
-
-        observer.observe(mediaSection);
-    } else {
-        var script = document.createElement('script');
-        script.src = '//www.instagram.com/embed.js';
-        script.async = true;
-        document.body.appendChild(script);
+    if (!INSTAGRAM_ACCESS_TOKEN || INSTAGRAM_ACCESS_TOKEN === 'YOUR_ACCESS_TOKEN') {
+        container.innerHTML =
+            '<div class="insta-fallback">' +
+                '<p>Instagram feed not configured yet.</p>' +
+                '<p>Set <code>INSTAGRAM_ACCESS_TOKEN</code> in script.js to enable the live feed.</p>' +
+            '</div>';
+        return;
     }
+
+    var apiUrl = 'https://graph.instagram.com/me/media' +
+        '?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp' +
+        '&limit=' + INSTAGRAM_POST_COUNT +
+        '&access_token=' + INSTAGRAM_ACCESS_TOKEN;
+
+    fetch(apiUrl)
+        .then(function(res) {
+            if (!res.ok) throw new Error('Instagram API error');
+            return res.json();
+        })
+        .then(function(json) {
+            var posts = (json.data || []).filter(function(p) {
+                return p.media_type === 'IMAGE' || p.media_type === 'CAROUSEL_ALBUM' || p.media_type === 'VIDEO';
+            });
+
+            if (posts.length === 0) {
+                container.innerHTML = '<p class="insta-loading">No posts found.</p>';
+                return;
+            }
+
+            buildInstaSlideshow(container, posts);
+        })
+        .catch(function() {
+            container.innerHTML =
+                '<div class="insta-fallback">' +
+                    '<p>Could not load Instagram posts. The access token may have expired.</p>' +
+                    '<a href="https://www.instagram.com/kalyan_oncosurgeon" target="_blank">Visit Instagram profile →</a>' +
+                '</div>';
+        });
+}
+
+function buildInstaSlideshow(container, posts) {
+    var currentIndex = 0;
+    var autoplayTimer = null;
+
+    // Build DOM
+    container.innerHTML = '';
+    container.className = 'insta-slideshow insta-slideshow--ready';
+
+    // Track
+    var track = document.createElement('div');
+    track.className = 'insta-track';
+
+    posts.forEach(function(post) {
+        var slide = document.createElement('a');
+        slide.className = 'insta-slide';
+        slide.href = post.permalink;
+        slide.target = '_blank';
+        slide.rel = 'noopener';
+
+        var imgSrc = post.media_type === 'VIDEO' ? post.thumbnail_url : post.media_url;
+        var caption = post.caption ? sanitizeHTML(post.caption.substring(0, 120)) : '';
+
+        slide.innerHTML =
+            '<div class="insta-slide-img">' +
+                '<img src="' + imgSrc + '" alt="' + caption + '" loading="lazy" decoding="async">' +
+                (post.media_type === 'VIDEO' ? '<span class="insta-video-badge">▶</span>' : '') +
+                (post.media_type === 'CAROUSEL_ALBUM' ? '<span class="insta-carousel-badge">❑❑</span>' : '') +
+            '</div>' +
+            (caption ? '<p class="insta-caption">' + caption + (post.caption.length > 120 ? '…' : '') + '</p>' : '');
+
+        track.appendChild(slide);
+    });
+
+    container.appendChild(track);
+
+    // Navigation arrows
+    var prevBtn = document.createElement('button');
+    prevBtn.className = 'insta-nav insta-nav--prev';
+    prevBtn.setAttribute('aria-label', 'Previous posts');
+    prevBtn.innerHTML = '‹';
+    container.appendChild(prevBtn);
+
+    var nextBtn = document.createElement('button');
+    nextBtn.className = 'insta-nav insta-nav--next';
+    nextBtn.setAttribute('aria-label', 'Next posts');
+    nextBtn.innerHTML = '›';
+    container.appendChild(nextBtn);
+
+    // Dots
+    var slidesPerView = getSlidesPerView();
+    var totalPages = Math.ceil(posts.length / slidesPerView);
+    var dotsWrap = document.createElement('div');
+    dotsWrap.className = 'insta-dots';
+
+    for (var d = 0; d < totalPages; d++) {
+        var dot = document.createElement('button');
+        dot.className = 'insta-dot' + (d === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', 'Go to page ' + (d + 1));
+        dot.dataset.index = d;
+        dotsWrap.appendChild(dot);
+    }
+    container.appendChild(dotsWrap);
+
+    // Slide logic
+    function getSlidesPerView() {
+        if (window.innerWidth <= 480) return 1;
+        if (window.innerWidth <= 768) return 2;
+        if (window.innerWidth <= 1024) return 3;
+        return 4;
+    }
+
+    function goTo(pageIndex) {
+        slidesPerView = getSlidesPerView();
+        totalPages = Math.ceil(posts.length / slidesPerView);
+        if (pageIndex < 0) pageIndex = totalPages - 1;
+        if (pageIndex >= totalPages) pageIndex = 0;
+        currentIndex = pageIndex;
+
+        var offset = -(currentIndex * slidesPerView * (100 / slidesPerView));
+        track.style.transform = 'translateX(' + offset + '%)';
+
+        var dots = dotsWrap.querySelectorAll('.insta-dot');
+        dots.forEach(function(dot, i) {
+            dot.classList.toggle('active', i === currentIndex);
+        });
+    }
+
+    prevBtn.addEventListener('click', function() { goTo(currentIndex - 1); resetAutoplay(); });
+    nextBtn.addEventListener('click', function() { goTo(currentIndex + 1); resetAutoplay(); });
+    dotsWrap.addEventListener('click', function(e) {
+        if (e.target.classList.contains('insta-dot')) {
+            goTo(parseInt(e.target.dataset.index));
+            resetAutoplay();
+        }
+    });
+
+    // Autoplay
+    function resetAutoplay() {
+        clearInterval(autoplayTimer);
+        autoplayTimer = setInterval(function() { goTo(currentIndex + 1); }, 5000);
+    }
+    resetAutoplay();
+
+    // Pause on hover
+    container.addEventListener('mouseenter', function() { clearInterval(autoplayTimer); });
+    container.addEventListener('mouseleave', function() { resetAutoplay(); });
+
+    // Recalculate on resize
+    var resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            // Rebuild dots for new slidesPerView
+            slidesPerView = getSlidesPerView();
+            totalPages = Math.ceil(posts.length / slidesPerView);
+            dotsWrap.innerHTML = '';
+            for (var d = 0; d < totalPages; d++) {
+                var dot = document.createElement('button');
+                dot.className = 'insta-dot' + (d === 0 ? ' active' : '');
+                dot.dataset.index = d;
+                dotsWrap.appendChild(dot);
+            }
+            goTo(0);
+        }, 250);
+    });
 }
 
 // ====================================
