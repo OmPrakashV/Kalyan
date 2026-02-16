@@ -24,6 +24,7 @@ function initDeferredSystems() {
     initRatingStars();
     initYouTubeFeed();
     initInstagramFeed();
+    initGoogleReviews();
     initLazyIframes();
 }
 
@@ -488,6 +489,12 @@ const YOUTUBE_VIDEO_COUNT = 6;
 const INSTAGRAM_ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN';
 const INSTAGRAM_POST_COUNT = 12;
 
+// Google Places API — set your Place ID and API key to fetch Google reviews.
+// Find your Place ID at https://developers.google.com/maps/documentation/places/web-service/place-id
+// Create an API key at https://console.cloud.google.com (enable Places API New).
+const GOOGLE_PLACE_ID = 'YOUR_PLACE_ID';
+const GOOGLE_MAPS_API_KEY = 'YOUR_API_KEY';
+
 function initYouTubeFeed() {
     const grid = document.getElementById('ytGrid');
     if (!grid) return;
@@ -540,6 +547,170 @@ function initYouTubeFeed() {
         .catch(function() {
             grid.innerHTML = '<p class="yt-loading">Could not load videos. <a href="https://www.youtube.com/channel/' + YOUTUBE_CHANNEL_ID + '" target="_blank">Visit YouTube channel →</a></p>';
         });
+}
+
+// ====================================
+// Google Reviews (Places API)
+// ====================================
+function initGoogleReviews() {
+    var container = document.getElementById('googleReviewsGrid');
+    if (!container) return;
+
+    if (!GOOGLE_PLACE_ID || GOOGLE_PLACE_ID === 'YOUR_PLACE_ID' ||
+        !GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY') {
+        container.innerHTML =
+            '<div class="google-reviews-fallback">' +
+                '<p>Google Reviews not configured yet.</p>' +
+                '<p>Set <code>GOOGLE_PLACE_ID</code> and <code>GOOGLE_MAPS_API_KEY</code> in script.js.</p>' +
+            '</div>';
+        return;
+    }
+
+    var apiUrl = 'https://places.googleapis.com/v1/places/' + GOOGLE_PLACE_ID +
+        '?key=' + GOOGLE_MAPS_API_KEY;
+
+    fetch(apiUrl, {
+        headers: {
+            'X-Goog-FieldMask': 'reviews,rating,userRatingCount,googleMapsUri'
+        }
+    })
+        .then(function(res) {
+            if (!res.ok) throw new Error('Places API error');
+            return res.json();
+        })
+        .then(function(place) {
+            var reviews = place.reviews || [];
+            if (reviews.length === 0) {
+                container.innerHTML = '<p class="google-reviews-empty">No reviews found.</p>';
+                return;
+            }
+
+            // Update summary badge
+            var badge = document.getElementById('googleReviewsBadge');
+            if (badge && place.rating) {
+                var stars = '';
+                for (var i = 0; i < 5; i++) {
+                    if (i < Math.floor(place.rating)) stars += '★';
+                    else if (i < place.rating) stars += '★'; // half-star simplified to full
+                    else stars += '☆';
+                }
+                badge.innerHTML =
+                    '<img src="https://www.google.com/favicon.ico" alt="Google" class="google-icon">' +
+                    '<span class="google-badge-rating">' + place.rating.toFixed(1) + '</span>' +
+                    '<span class="google-badge-stars">' + stars + '</span>' +
+                    '<span class="google-badge-count">(' + (place.userRatingCount || 0) + ' reviews)</span>';
+                badge.href = place.googleMapsUri || '#';
+                badge.style.display = 'flex';
+            }
+
+            buildGoogleReviewsSlider(container, reviews, place.googleMapsUri);
+        })
+        .catch(function() {
+            container.innerHTML =
+                '<div class="google-reviews-fallback">' +
+                    '<p>Could not load Google reviews.</p>' +
+                    '<a href="https://www.google.com/maps/search/Amor+Hospitals+Kukatpally+Hyderabad" target="_blank">View on Google Maps →</a>' +
+                '</div>';
+        });
+}
+
+function buildGoogleReviewsSlider(container, reviews, mapsUri) {
+    container.innerHTML = '';
+    var currentIndex = 0;
+    var autoTimer = null;
+
+    // Build cards track
+    var track = document.createElement('div');
+    track.className = 'grev-track';
+
+    reviews.forEach(function(review) {
+        var card = document.createElement('div');
+        card.className = 'grev-card';
+
+        var rating = review.rating || 5;
+        var stars = '';
+        for (var s = 0; s < 5; s++) {
+            stars += s < rating ? '★' : '☆';
+        }
+
+        var text = review.text ? review.text.text || '' : '';
+        var author = review.authorAttribution ? review.authorAttribution.displayName || 'Google User' : 'Google User';
+        var photoUri = review.authorAttribution && review.authorAttribution.photoUri ? review.authorAttribution.photoUri : '';
+        var relTime = review.relativePublishTimeDescription || '';
+
+        card.innerHTML =
+            '<div class="grev-header">' +
+                (photoUri ? '<img src="' + photoUri + '" alt="" class="grev-avatar">' :
+                    '<div class="grev-avatar grev-avatar--placeholder">' + sanitizeHTML(author.charAt(0)) + '</div>') +
+                '<div class="grev-author-info">' +
+                    '<strong class="grev-name">' + sanitizeHTML(author) + '</strong>' +
+                    '<span class="grev-time">' + sanitizeHTML(relTime) + '</span>' +
+                '</div>' +
+                '<img src="https://www.google.com/favicon.ico" alt="Google" class="grev-google-icon">' +
+            '</div>' +
+            '<div class="grev-stars">' + stars + '</div>' +
+            (text ? '<p class="grev-text">' + sanitizeHTML(text) + '</p>' : '');
+
+        track.appendChild(card);
+    });
+
+    container.appendChild(track);
+
+    // Navigation
+    if (reviews.length > 1) {
+        var prevBtn = document.createElement('button');
+        prevBtn.className = 'grev-nav grev-nav--prev';
+        prevBtn.setAttribute('aria-label', 'Previous review');
+        prevBtn.innerHTML = '‹';
+        container.appendChild(prevBtn);
+
+        var nextBtn = document.createElement('button');
+        nextBtn.className = 'grev-nav grev-nav--next';
+        nextBtn.setAttribute('aria-label', 'Next review');
+        nextBtn.innerHTML = '›';
+        container.appendChild(nextBtn);
+
+        // Dots
+        var dotsWrap = document.createElement('div');
+        dotsWrap.className = 'grev-dots';
+        for (var d = 0; d < reviews.length; d++) {
+            var dot = document.createElement('button');
+            dot.className = 'grev-dot' + (d === 0 ? ' active' : '');
+            dot.dataset.index = d;
+            dotsWrap.appendChild(dot);
+        }
+        container.appendChild(dotsWrap);
+
+        function goTo(idx) {
+            if (idx < 0) idx = reviews.length - 1;
+            if (idx >= reviews.length) idx = 0;
+            currentIndex = idx;
+            track.style.transform = 'translateX(-' + (currentIndex * 100) + '%)';
+            var dots = dotsWrap.querySelectorAll('.grev-dot');
+            dots.forEach(function(dot, i) {
+                dot.classList.toggle('active', i === currentIndex);
+            });
+        }
+
+        prevBtn.addEventListener('click', function() { goTo(currentIndex - 1); resetAuto(); });
+        nextBtn.addEventListener('click', function() { goTo(currentIndex + 1); resetAuto(); });
+        dotsWrap.addEventListener('click', function(e) {
+            if (e.target.classList.contains('grev-dot')) {
+                goTo(parseInt(e.target.dataset.index));
+                resetAuto();
+            }
+        });
+
+        // Autoplay
+        function resetAuto() {
+            clearInterval(autoTimer);
+            autoTimer = setInterval(function() { goTo(currentIndex + 1); }, 6000);
+        }
+        resetAuto();
+
+        container.addEventListener('mouseenter', function() { clearInterval(autoTimer); });
+        container.addEventListener('mouseleave', function() { resetAuto(); });
+    }
 }
 
 // ====================================
