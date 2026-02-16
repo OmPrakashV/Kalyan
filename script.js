@@ -41,8 +41,11 @@ function initNavigation() {
         navToggle.addEventListener('click', function() {
             navToggle.classList.toggle('active');
             navMenu.classList.toggle('active');
+            var isOpen = navMenu.classList.contains('active');
+            navToggle.setAttribute('aria-expanded', isOpen);
+            navToggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Toggle menu');
             // Lock body scroll when menu is open
-            document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
+            document.body.style.overflow = isOpen ? 'hidden' : '';
         });
     }
 
@@ -51,6 +54,8 @@ function initNavigation() {
         link.addEventListener('click', function() {
             navToggle.classList.remove('active');
             navMenu.classList.remove('active');
+            navToggle.setAttribute('aria-expanded', 'false');
+            navToggle.setAttribute('aria-label', 'Toggle menu');
             document.body.style.overflow = '';
         });
     });
@@ -522,6 +527,23 @@ function initGoogleReviews() {
                 badge.style.display = 'flex';
             }
 
+            // Inject aggregateRating into JSON-LD structured data
+            if (place.rating && place.userRatingCount) {
+                var schemaScript = document.querySelector('script[type="application/ld+json"]');
+                if (schemaScript) {
+                    try {
+                        var schema = JSON.parse(schemaScript.textContent);
+                        schema.aggregateRating = {
+                            "@type": "AggregateRating",
+                            "ratingValue": place.rating.toFixed(1),
+                            "bestRating": "5",
+                            "ratingCount": place.userRatingCount
+                        };
+                        schemaScript.textContent = JSON.stringify(schema);
+                    } catch (e) { /* skip if schema parsing fails */ }
+                }
+            }
+
             buildGoogleReviewsSlider(container, reviews, place.googleMapsUri);
         })
         .catch(function() {
@@ -827,6 +849,7 @@ function buildInstaSlideshow(container, posts) {
             for (var d = 0; d < totalPages; d++) {
                 var dot = document.createElement('button');
                 dot.className = 'insta-dot' + (d === 0 ? ' active' : '');
+                dot.setAttribute('aria-label', 'Go to page ' + (d + 1));
                 dot.dataset.index = d;
                 dotsWrap.appendChild(dot);
             }

@@ -491,15 +491,10 @@ p {
 /* ====================================
    Content Visibility — skip rendering for off-screen sections
    ==================================== */
-.about,
-.services,
 .blog,
-.google-reviews,
-.media,
-.contact,
-.footer {
+.media {
     content-visibility: auto;
-    contain-intrinsic-size: auto 800px;
+    contain-intrinsic-size: auto 1200px;
 }
 
 /* ====================================
@@ -803,6 +798,11 @@ p {
     font-weight: 600;
     font-size: 0.9375rem;
     color: var(--slate);
+}
+
+.required {
+    color: var(--secondary);
+    font-weight: 700;
 }
 
 .form-group input,
