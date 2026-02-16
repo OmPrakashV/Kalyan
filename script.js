@@ -122,89 +122,144 @@ function initScrollEffects() {
 }
 
 // ====================================
-// Blog System
+// Blog System (Google Sheets CMS)
 // ====================================
 function initBlogSystem() {
-    // Load any previously saved blogs from localStorage
-    loadBlogs();
+    var grid = document.getElementById('blogGrid');
+    if (!grid) return;
 
-    // Wire up "Read Article" links on sample (static) blog cards
-    document.querySelectorAll('.blog-card[data-blog-title]').forEach(function(card) {
-        var link = card.querySelector('.blog-link');
-        if (link) {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                var title = card.getAttribute('data-blog-title');
-                var content = card.getAttribute('data-blog-content');
-                showModal(title, content);
-            });
-        }
-    });
-}
-
-function loadBlogs() {
-    const blogs = JSON.parse(localStorage.getItem('blogs')) || [];
-    const blogGrid = document.getElementById('blogGrid');
-
-    // Clear existing dynamic blogs (keep sample posts)
-    const dynamicBlogs = blogGrid.querySelectorAll('.blog-card[data-dynamic]');
-    dynamicBlogs.forEach(card => card.remove());
-
-    // Add saved blogs
-    blogs.forEach(blog => {
-        addBlogToGrid(blog);
-    });
-}
-
-function addBlogToGrid(blogData) {
-    const blogGrid = document.getElementById('blogGrid');
-
-    const blogCard = document.createElement('article');
-    blogCard.className = 'blog-card';
-    blogCard.setAttribute('data-dynamic', 'true');
-    blogCard.style.opacity = '0';
-    blogCard.style.transform = 'translateY(30px)';
-
-    const categoryFormatted = blogData.category
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-
-    blogCard.innerHTML = `
-        <div class="blog-image">
-            <div class="blog-image-placeholder" style="${blogData.image ? `background-image: url(${blogData.image}); background-size: cover; background-position: center;` : ''}">
-                <span class="blog-category">${categoryFormatted}</span>
-            </div>
-        </div>
-        <div class="blog-content">
-            <div class="blog-meta">
-                <span class="blog-date">${blogData.date}</span>
-            </div>
-            <h3 class="blog-title">${blogData.title}</h3>
-            <p class="blog-excerpt">${blogData.excerpt}</p>
-            <a href="#" class="blog-link" onclick="viewBlogPost(${blogData.id}); return false;">Read Article →</a>
-        </div>
-    `;
-
-    blogGrid.insertBefore(blogCard, blogGrid.firstChild);
-
-    // Animate in
-    setTimeout(() => {
-        blogCard.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-        blogCard.style.opacity = '1';
-        blogCard.style.transform = 'translateY(0)';
-    }, 100);
-}
-
-function viewBlogPost(blogId) {
-    const blogs = JSON.parse(localStorage.getItem('blogs')) || [];
-    const blog = blogs.find(b => b.id === blogId);
-
-    if (blog) {
-        // In a real implementation, this would open a dedicated blog post page
-        // For now, we'll show it in a modal or alert
-        showModal(blog.title, blog.content);
+    if (!GOOGLE_SHEET_ID || GOOGLE_SHEET_ID === 'YOUR_SHEET_ID') {
+        grid.innerHTML =
+            '<div class="blog-fallback">' +
+                '<p>Blog not configured yet.</p>' +
+                '<p>Set <code>GOOGLE_SHEET_ID</code> in script.js to load articles from Google Sheets.</p>' +
+            '</div>';
+        return;
     }
+
+    var csvUrl = 'https://docs.google.com/spreadsheets/d/' + GOOGLE_SHEET_ID + '/export?format=csv&gid=0';
+
+    fetch(csvUrl)
+        .then(function(res) {
+            if (!res.ok) throw new Error('Sheet fetch failed');
+            return res.text();
+        })
+        .then(function(csvText) {
+            var rows = parseCSV(csvText);
+            // Remove header row
+            if (rows.length > 0) rows.shift();
+
+            if (rows.length === 0) {
+                grid.innerHTML =
+                    '<div class="blog-fallback">' +
+                        '<p>No articles published yet.</p>' +
+                    '</div>';
+                return;
+            }
+
+            grid.innerHTML = '';
+
+            rows.forEach(function(row) {
+                var title = (row[0] || '').trim();
+                var category = (row[1] || '').trim();
+                var date = (row[2] || '').trim();
+                var excerpt = (row[3] || '').trim();
+                var content = (row[4] || '').trim();
+                var imageUrl = (row[5] || '').trim();
+
+                if (!title) return;
+
+                var card = document.createElement('article');
+                card.className = 'blog-card';
+
+                var imageStyle = imageUrl
+                    ? 'background-image: url(' + sanitizeHTML(imageUrl) + '); background-size: cover; background-position: center;'
+                    : '';
+
+                card.innerHTML =
+                    '<div class="blog-image">' +
+                        '<div class="blog-image-placeholder" style="' + imageStyle + '">' +
+                            '<span class="blog-category">' + sanitizeHTML(category) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="blog-content">' +
+                        '<div class="blog-meta">' +
+                            '<span class="blog-date">' + sanitizeHTML(date) + '</span>' +
+                        '</div>' +
+                        '<h3 class="blog-title">' + sanitizeHTML(title) + '</h3>' +
+                        '<p class="blog-excerpt">' + sanitizeHTML(excerpt) + '</p>' +
+                        '<a href="#" class="blog-link">Read Article →</a>' +
+                    '</div>';
+
+                // Wire up click handler
+                (function(t, c) {
+                    card.querySelector('.blog-link').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        showModal(t, c);
+                    });
+                })(title, content);
+
+                grid.appendChild(card);
+            });
+        })
+        .catch(function() {
+            grid.innerHTML =
+                '<div class="blog-fallback">' +
+                    '<p>Could not load articles. Please try again later.</p>' +
+                '</div>';
+        });
+}
+
+// Lightweight CSV parser — handles quoted fields with commas and newlines
+function parseCSV(text) {
+    var rows = [];
+    var row = [];
+    var field = '';
+    var inQuotes = false;
+
+    for (var i = 0; i < text.length; i++) {
+        var ch = text[i];
+        var next = text[i + 1];
+
+        if (inQuotes) {
+            if (ch === '"' && next === '"') {
+                field += '"';
+                i++;
+            } else if (ch === '"') {
+                inQuotes = false;
+            } else {
+                field += ch;
+            }
+        } else {
+            if (ch === '"') {
+                inQuotes = true;
+            } else if (ch === ',') {
+                row.push(field);
+                field = '';
+            } else if (ch === '\r' && next === '\n') {
+                row.push(field);
+                field = '';
+                rows.push(row);
+                row = [];
+                i++;
+            } else if (ch === '\n') {
+                row.push(field);
+                field = '';
+                rows.push(row);
+                row = [];
+            } else {
+                field += ch;
+            }
+        }
+    }
+
+    // Last field/row
+    if (field || row.length > 0) {
+        row.push(field);
+        rows.push(row);
+    }
+
+    return rows;
 }
 
 // ====================================
@@ -322,6 +377,12 @@ function showModal(title, message) {
 // ====================================
 // TODO: Replace with your actual YouTube channel ID (starts with UC...)
 // Find it at: youtube.com/account_advanced or right-click page source on youtube.com/@ABCcancer
+// Google Sheets Blog CMS — set your published Google Sheet ID here.
+// 1. Create a Google Sheet with columns: title, category, date, excerpt, content, image_url
+// 2. File > Share > Publish to web > select CSV > Publish
+// 3. Copy the Sheet ID from the URL (the long string between /d/ and /edit)
+const GOOGLE_SHEET_ID = 'YOUR_SHEET_ID';
+
 const YOUTUBE_CHANNEL_ID = 'YOUR_CHANNEL_ID';
 const YOUTUBE_VIDEO_COUNT = 6;
 
@@ -892,14 +953,12 @@ function isValidEmail(email) {
 // Function to view all stored data (call from browser console)
 function viewStoredData() {
     console.log('=== STORED DATA ===');
-    console.log('Blogs:', JSON.parse(localStorage.getItem('blogs')) || []);
     console.log('Contacts:', JSON.parse(localStorage.getItem('contacts')) || []);
 }
 
 // Function to clear all data (call from browser console)
 function clearAllData() {
     if (confirm('Are you sure you want to clear all stored data? This cannot be undone.')) {
-        localStorage.removeItem('blogs');
         localStorage.removeItem('contacts');
         location.reload();
     }
@@ -914,6 +973,6 @@ window.clearAllData = clearAllData;
 // ====================================
 console.log('%c🏥 Clinical Serenity Website', 'color: #0D7377; font-size: 20px; font-weight: bold;');
 console.log('%cAdmin Functions Available:', 'color: #FF6B6B; font-weight: bold;');
-console.log('- viewStoredData() - View all stored blog posts and contacts');
+console.log('- viewStoredData() - View all stored contacts');
 console.log('- clearAllData() - Clear all stored data');
 console.log('%cWebsite ready!', 'color: #0D7377; font-weight: bold;');

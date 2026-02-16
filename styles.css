@@ -1308,6 +1308,30 @@ section.google-reviews {
     padding: 3rem;
 }
 
+.blog-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--slate-light);
+    padding: 3rem;
+}
+
+.blog-fallback {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    background: var(--cream);
+    border-radius: var(--card-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    color: var(--slate-light);
+}
+
+.blog-fallback code {
+    background: rgba(0, 0, 0, 0.06);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
 @media (max-width: 768px) {
     .yt-grid {
         grid-template-columns: 1fr;
