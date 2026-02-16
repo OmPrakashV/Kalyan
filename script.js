@@ -489,7 +489,10 @@ const YOUTUBE_VIDEO_COUNT = 6;
 const INSTAGRAM_ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN';
 const INSTAGRAM_POST_COUNT = 12;
 
-// Google Places API — set your Place ID and API key to fetch Google reviews.
+// Google Maps profile URL (short link from your Google Business Profile).
+const GOOGLE_MAPS_URL = 'https://maps.app.goo.gl/21FxMEDhcGHSCwFB7';
+
+// Google Places API — set your Place ID and API key to fetch Google reviews dynamically.
 // Find your Place ID at https://developers.google.com/maps/documentation/places/web-service/place-id
 // Create an API key at https://console.cloud.google.com (enable Places API New).
 const GOOGLE_PLACE_ID = 'YOUR_PLACE_ID';
@@ -556,6 +559,17 @@ function initGoogleReviews() {
     var container = document.getElementById('googleReviewsGrid');
     if (!container) return;
 
+    // Set the "Write a Review" link
+    var reviewLink = document.getElementById('googleReviewLink');
+    if (reviewLink) {
+        if (GOOGLE_PLACE_ID && GOOGLE_PLACE_ID !== 'YOUR_PLACE_ID') {
+            reviewLink.href = 'https://search.google.com/local/writereview?placeid=' + GOOGLE_PLACE_ID;
+        } else {
+            // Use Google Maps profile URL — user can review from the listing page
+            reviewLink.href = GOOGLE_MAPS_URL;
+        }
+    }
+
     if (!GOOGLE_PLACE_ID || GOOGLE_PLACE_ID === 'YOUR_PLACE_ID' ||
         !GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY') {
         container.innerHTML =
@@ -609,7 +623,7 @@ function initGoogleReviews() {
             container.innerHTML =
                 '<div class="google-reviews-fallback">' +
                     '<p>Could not load Google reviews.</p>' +
-                    '<a href="https://www.google.com/maps/search/Amor+Hospitals+Kukatpally+Hyderabad" target="_blank">View on Google Maps →</a>' +
+                    '<a href="' + GOOGLE_MAPS_URL + '" target="_blank">View on Google Maps →</a>' +
                 '</div>';
         });
 }
