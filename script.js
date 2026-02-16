@@ -4,15 +4,28 @@
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    // Critical — needed for above-the-fold interaction
     initNavigation();
     initScrollEffects();
+    initModal();
+
+    // Defer non-critical initialization until after first paint
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(initDeferredSystems);
+    } else {
+        setTimeout(initDeferredSystems, 200);
+    }
+});
+
+function initDeferredSystems() {
     initBlogSystem();
     initFeedbackSystem();
     initContactForm();
     initRatingStars();
-    initModal();
     initYouTubeFeed();
-});
+    initLazyIframes();
+    initDeferredEmbeds();
+}
 
 // ====================================
 // Navigation
@@ -42,19 +55,21 @@ function initNavigation() {
         });
     });
 
-    // Sticky navigation on scroll
-    let lastScroll = 0;
+    // Sticky navigation on scroll — throttled with rAF
+    let scrollTicking = false;
     window.addEventListener('scroll', function() {
-        const currentScroll = window.pageYOffset;
-
-        if (currentScroll > 100) {
-            nav.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.1)';
-        } else {
-            nav.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.05)';
+        if (!scrollTicking) {
+            scrollTicking = true;
+            requestAnimationFrame(function() {
+                if (window.pageYOffset > 100) {
+                    nav.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.1)';
+                } else {
+                    nav.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.05)';
+                }
+                scrollTicking = false;
+            });
         }
-
-        lastScroll = currentScroll;
-    });
+    }, { passive: true });
 
     // Smooth scroll for anchor links
     navLinks.forEach(link => {
@@ -82,26 +97,21 @@ function initScrollEffects() {
     // Skip scroll animations if user prefers reduced motion
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -100px 0px'
-    };
-
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(entry => {
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
             if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+                entry.target.classList.remove('scroll-hidden');
+                entry.target.classList.add('scroll-visible');
+                observer.unobserve(entry.target); // Stop observing once revealed
             }
         });
-    }, observerOptions);
+    }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
 
-    // Observe elements for fade-in animation
-    const animatedElements = document.querySelectorAll('.service-card, .blog-card, .testimonial-card, .credential-item');
-    animatedElements.forEach((el, index) => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = `opacity 0.6s ease-out ${index * 0.1}s, transform 0.6s ease-out ${index * 0.1}s`;
+    // Observe elements for fade-in animation — use CSS classes instead of inline styles
+    var animatedElements = document.querySelectorAll('.service-card, .blog-card, .testimonial-card, .credential-item');
+    animatedElements.forEach(function(el, index) {
+        el.classList.add('scroll-hidden');
+        el.style.transition = 'opacity 0.6s ease-out ' + (index * 0.1) + 's, transform 0.6s ease-out ' + (index * 0.1) + 's';
         observer.observe(el);
     });
 }
@@ -524,6 +534,65 @@ function initYouTubeFeed() {
         .catch(function() {
             grid.innerHTML = '<p class="yt-loading">Could not load videos. <a href="https://www.youtube.com/channel/' + YOUTUBE_CHANNEL_ID + '" target="_blank">Visit YouTube channel →</a></p>';
         });
+}
+
+// ====================================
+// Lazy Iframe Loading (Google Maps)
+// ====================================
+function initLazyIframes() {
+    var iframes = document.querySelectorAll('iframe[data-src]');
+    if (!iframes.length) return;
+
+    if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var iframe = entry.target;
+                    iframe.src = iframe.getAttribute('data-src');
+                    iframe.removeAttribute('data-src');
+                    observer.unobserve(iframe);
+                }
+            });
+        }, { rootMargin: '200px' });
+
+        iframes.forEach(function(iframe) { observer.observe(iframe); });
+    } else {
+        // Fallback: load all iframes immediately
+        iframes.forEach(function(iframe) {
+            iframe.src = iframe.getAttribute('data-src');
+            iframe.removeAttribute('data-src');
+        });
+    }
+}
+
+// ====================================
+// Deferred Third-Party Embeds (Instagram)
+// ====================================
+function initDeferredEmbeds() {
+    // Load Instagram embed script only when the media section is near viewport
+    var mediaSection = document.getElementById('media');
+    if (!mediaSection) return;
+
+    if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var script = document.createElement('script');
+                    script.src = '//www.instagram.com/embed.js';
+                    script.async = true;
+                    document.body.appendChild(script);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '300px' });
+
+        observer.observe(mediaSection);
+    } else {
+        var script = document.createElement('script');
+        script.src = '//www.instagram.com/embed.js';
+        script.async = true;
+        document.body.appendChild(script);
+    }
 }
 
 // ====================================

@@ -205,7 +205,8 @@ p {
     z-index: 1000;
     background: var(--white);
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
-    transition: var(--transition-smooth);
+    transition: box-shadow 0.3s ease;
+    contain: layout style;
 }
 
 .nav-container {
@@ -314,6 +315,7 @@ p {
         radial-gradient(circle at 80% 70%, rgba(244, 162, 97, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 50% 50%, rgba(20, 255, 236, 0.08) 0%, transparent 60%);
     animation: meshFloat 20s ease-in-out infinite;
+    will-change: transform;
 }
 
 @keyframes meshFloat {
@@ -332,6 +334,8 @@ p {
     border-radius: 50%;
     opacity: 0.4;
     filter: blur(60px);
+    will-change: transform;
+    contain: layout style;
 }
 
 .shape-1 {
@@ -482,6 +486,20 @@ p {
 @keyframes scrollLine {
     0%, 100% { transform: translateY(0); opacity: 0; }
     50% { transform: translateY(20px); opacity: 1; }
+}
+
+/* ====================================
+   Content Visibility — skip rendering for off-screen sections
+   ==================================== */
+.about,
+.services,
+.blog,
+.testimonials,
+.media,
+.contact,
+.footer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 800px;
 }
 
 /* ====================================
@@ -1428,7 +1446,6 @@ p {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -1438,6 +1455,7 @@ p {
 
 .modal.active {
     display: flex;
+    backdrop-filter: blur(5px);
 }
 
 .modal-content {
@@ -1507,6 +1525,17 @@ p {
         opacity: 1;
         transform: scale(1);
     }
+}
+
+/* Scroll-reveal animation classes (JS-driven) */
+.scroll-hidden {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.scroll-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* ====================================
@@ -1890,6 +1919,7 @@ p {
     box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
     transition: var(--transition-smooth);
     animation: whatsappPulse 3s ease-in-out infinite;
+    will-change: box-shadow;
 }
 
 .whatsapp-float:hover {
