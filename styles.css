@@ -1879,7 +1879,7 @@ section.google-reviews {
     .shape-2,
     .shape-3,
     .scroll-line,
-    .whatsapp-float {
+    .wa-float-btn {
         animation: none !important;
     }
 
@@ -2255,54 +2255,260 @@ section.google-reviews {
 }
 
 /* ====================================
-   Floating WhatsApp Button
+   WhatsApp Business Chat Widget
    ==================================== */
-.whatsapp-float {
+.wa-widget {
     position: fixed;
     bottom: 2rem;
     right: 2rem;
     z-index: 950;
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    background: #25D366;
-    color: #fff;
-    padding: 0.875rem 1.25rem;
-    border-radius: 50px;
-    text-decoration: none;
-    font-family: var(--font-body);
-    font-size: 0.9375rem;
-    font-weight: 600;
-    box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
-    transition: var(--transition-smooth);
-    animation: whatsappPulse 3s ease-in-out infinite;
-    will-change: box-shadow;
 }
 
-.whatsapp-float:hover {
-    transform: scale(1.05);
+/* Floating trigger button */
+.wa-float-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background: #25D366;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+    transition: var(--transition-smooth);
+    animation: waPulse 3s ease-in-out infinite;
+    position: relative;
+}
+
+.wa-float-btn:hover {
+    transform: scale(1.08);
     box-shadow: 0 6px 28px rgba(37, 211, 102, 0.5);
 }
 
-.whatsapp-float svg {
-    flex-shrink: 0;
+.wa-float-icon--close {
+    display: none;
 }
 
-@keyframes whatsappPulse {
+.wa-float-btn.active .wa-float-icon--wa {
+    display: none;
+}
+
+.wa-float-btn.active .wa-float-icon--close {
+    display: block;
+}
+
+.wa-float-btn.active {
+    animation: none;
+    background: #128C7E;
+}
+
+/* Notification badge */
+.wa-float-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    background: #FF6B6B;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    animation: badgeBounce 2s ease-in-out infinite;
+}
+
+@keyframes waPulse {
     0%, 100% { box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4); }
     50% { box-shadow: 0 4px 28px rgba(37, 211, 102, 0.6); }
 }
 
+@keyframes badgeBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+/* Chat popup */
+.wa-popup {
+    position: absolute;
+    bottom: 75px;
+    right: 0;
+    width: 360px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 12px 50px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.95);
+    transform-origin: bottom right;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wa-popup.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/* Popup header */
+.wa-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #075E54;
+    color: #fff;
+}
+
+.wa-popup-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.wa-popup-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.wa-popup-info strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.wa-popup-info span {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.wa-popup-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: var(--transition-smooth);
+}
+
+.wa-popup-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Popup body */
+.wa-popup-body {
+    padding: 1.25rem;
+    background: #ECE5DD url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2s2-.9 2-2V7c0-1.1-.9-2-2-2z' fill='%23d4cfc6' opacity='.15'/%3E%3C/svg%3E");
+}
+
+.wa-bubble {
+    background: #fff;
+    padding: 0.85rem 1rem;
+    border-radius: 0 12px 12px 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1rem;
+    position: relative;
+    max-width: 85%;
+}
+
+.wa-bubble::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid #fff;
+    border-left: 8px solid transparent;
+}
+
+.wa-bubble p {
+    font-size: 0.875rem;
+    color: var(--slate);
+    line-height: 1.5;
+    margin-bottom: 0.35rem;
+}
+
+.wa-bubble p:last-child {
+    margin-bottom: 0;
+}
+
+/* Quick reply buttons */
+.wa-quick-replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.wa-quick-btn {
+    background: #fff;
+    border: 1px solid #25D366;
+    color: #075E54;
+    padding: 0.5rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    font-family: var(--font-body);
+}
+
+.wa-quick-btn:hover {
+    background: #25D366;
+    color: #fff;
+    border-color: #25D366;
+}
+
+/* Popup footer */
+.wa-popup-footer {
+    padding: 0.75rem 1.25rem;
+    background: #fff;
+    border-top: 1px solid #eee;
+}
+
+.wa-send-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    background: #25D366;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition-smooth);
+}
+
+.wa-send-btn:hover {
+    background: #128C7E;
+}
+
 @media (max-width: 768px) {
-    .whatsapp-float {
-        bottom: 5rem; /* above the mobile CTA bar */
+    .wa-widget {
+        bottom: 5rem;
         right: 1rem;
-        padding: 0.75rem;
-        border-radius: 50%;
     }
 
-    .whatsapp-float-label {
-        display: none;
+    .wa-popup {
+        width: calc(100vw - 2rem);
+        right: -0.5rem;
+    }
+
+    .wa-float-btn {
+        width: 52px;
+        height: 52px;
     }
 }
 

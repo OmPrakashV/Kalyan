@@ -23,6 +23,7 @@ function initDeferredSystems() {
     initYouTubeFeed();
     initInstagramFeed();
     initGoogleReviews();
+    initWhatsAppWidget();
     initLazyIframes();
 }
 
@@ -240,7 +241,7 @@ function initContactForm() {
             }
 
             var whatsappText = encodeURIComponent(lines.join('\n'));
-            var whatsappUrl = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + whatsappText;
+            var whatsappUrl = 'https://api.whatsapp.com/send?phone=' + WHATSAPP_NUMBER + '&text=' + whatsappText;
 
             // Open WhatsApp in new tab
             window.open(whatsappUrl, '_blank');
@@ -333,6 +334,74 @@ const GOOGLE_MAPS_URL = 'https://maps.app.goo.gl/21FxMEDhcGHSCwFB7';
 // Create an API key at https://console.cloud.google.com (enable Places API New).
 const GOOGLE_PLACE_ID = 'YOUR_PLACE_ID';
 const GOOGLE_MAPS_API_KEY = 'YOUR_API_KEY';
+
+// ====================================
+// WhatsApp Business Chat Widget
+// ====================================
+function initWhatsAppWidget() {
+    var floatBtn = document.getElementById('waFloatBtn');
+    var popup = document.getElementById('waPopup');
+    var closeBtn = document.getElementById('waPopupClose');
+    var directChat = document.getElementById('waDirectChat');
+    var quickBtns = document.querySelectorAll('.wa-quick-btn');
+    var badge = floatBtn ? floatBtn.querySelector('.wa-float-badge') : null;
+
+    if (!floatBtn || !popup) return;
+
+    var isOpen = false;
+    var baseUrl = 'https://api.whatsapp.com/send?phone=' + WHATSAPP_NUMBER;
+
+    // Set default direct chat link
+    directChat.href = baseUrl + '&text=' + encodeURIComponent('Hi Dr. Kalyan, I would like to know more.');
+
+    // Toggle popup
+    floatBtn.addEventListener('click', function() {
+        isOpen = !isOpen;
+        popup.classList.toggle('active', isOpen);
+        floatBtn.classList.toggle('active', isOpen);
+        if (isOpen && badge) badge.style.display = 'none';
+    });
+
+    // Close button
+    closeBtn.addEventListener('click', function() {
+        isOpen = false;
+        popup.classList.remove('active');
+        floatBtn.classList.remove('active');
+    });
+
+    // Quick reply buttons
+    quickBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var msg = btn.getAttribute('data-msg');
+            var url = baseUrl + '&text=' + encodeURIComponent(msg);
+            window.open(url, '_blank');
+        });
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function(e) {
+        if (isOpen && !popup.contains(e.target) && !floatBtn.contains(e.target)) {
+            isOpen = false;
+            popup.classList.remove('active');
+            floatBtn.classList.remove('active');
+        }
+    });
+
+    // Auto-show popup after 30 seconds on first visit
+    if (!sessionStorage.getItem('wa_popup_shown')) {
+        setTimeout(function() {
+            if (!isOpen) {
+                isOpen = true;
+                popup.classList.add('active');
+                floatBtn.classList.add('active');
+                if (badge) badge.style.display = 'none';
+                sessionStorage.setItem('wa_popup_shown', '1');
+            }
+        }, 30000);
+    } else {
+        if (badge) badge.style.display = 'none';
+    }
+}
 
 function initYouTubeFeed() {
     const grid = document.getElementById('ytGrid');
