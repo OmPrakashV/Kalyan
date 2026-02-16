@@ -19,9 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initDeferredSystems() {
     initBlogSystem();
-    initFeedbackSystem();
     initContactForm();
-    initRatingStars();
     initYouTubeFeed();
     initInstagramFeed();
     initGoogleReviews();
@@ -109,7 +107,7 @@ function initScrollEffects() {
     }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
 
     // Observe elements for fade-in animation — use CSS classes instead of inline styles
-    var animatedElements = document.querySelectorAll('.service-card, .blog-card, .testimonial-card, .credential-item');
+    var animatedElements = document.querySelectorAll('.service-card, .blog-card, .grev-card, .credential-item');
     animatedElements.forEach(function(el, index) {
         el.classList.add('scroll-hidden');
         el.style.transition = 'opacity 0.6s ease-out ' + (index * 0.1) + 's, transform 0.6s ease-out ' + (index * 0.1) + 's';
@@ -201,168 +199,6 @@ function viewBlogPost(blogId) {
         // For now, we'll show it in a modal or alert
         showModal(blog.title, blog.content);
     }
-}
-
-// ====================================
-// Feedback/Testimonials System
-// ====================================
-function initFeedbackSystem() {
-    const feedbackForm = document.getElementById('feedbackForm');
-    const testimonialsGrid = document.getElementById('testimonialsGrid');
-
-    // Load testimonials from localStorage
-    loadTestimonials();
-
-    // Submit feedback form
-    if (feedbackForm) {
-        feedbackForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const rating = document.getElementById('feedbackRating').value;
-            if (!rating) {
-                alert('Please select a rating');
-                return;
-            }
-
-            const feedbackData = {
-                id: Date.now(),
-                name: document.getElementById('feedbackName').value,
-                email: document.getElementById('feedbackEmail').value,
-                rating: parseInt(rating),
-                message: document.getElementById('feedbackMessage').value,
-                consent: document.getElementById('feedbackConsent').checked,
-                date: new Date().toISOString()
-            };
-
-            // Save to localStorage
-            let testimonials = JSON.parse(localStorage.getItem('testimonials')) || [];
-            testimonials.unshift(feedbackData);
-            localStorage.setItem('testimonials', JSON.stringify(testimonials));
-
-            // Add to grid (if consent given)
-            if (feedbackData.consent) {
-                addTestimonialToGrid(feedbackData);
-            }
-
-            // Reset form
-            feedbackForm.reset();
-            resetRatingStars();
-
-            // Show success modal
-            showModal('Thank You!', 'Your feedback has been received. We appreciate you taking the time to share your experience.');
-        });
-    }
-}
-
-function loadTestimonials() {
-    const testimonials = JSON.parse(localStorage.getItem('testimonials')) || [];
-    const testimonialsGrid = document.getElementById('testimonialsGrid');
-
-    // Clear existing dynamic testimonials (keep sample posts)
-    const dynamicTestimonials = testimonialsGrid.querySelectorAll('.testimonial-card[data-dynamic]');
-    dynamicTestimonials.forEach(card => card.remove());
-
-    // Add saved testimonials (only those with consent)
-    testimonials
-        .filter(t => t.consent)
-        .forEach(testimonial => {
-            addTestimonialToGrid(testimonial);
-        });
-}
-
-function addTestimonialToGrid(testimonialData) {
-    const testimonialsGrid = document.getElementById('testimonialsGrid');
-
-    const testimonialCard = document.createElement('div');
-    testimonialCard.className = 'testimonial-card';
-    testimonialCard.setAttribute('data-dynamic', 'true');
-    testimonialCard.style.opacity = '0';
-    testimonialCard.style.transform = 'translateY(30px)';
-
-    const stars = '★'.repeat(testimonialData.rating) + '☆'.repeat(5 - testimonialData.rating);
-    const initials = testimonialData.name
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase())
-        .join('.');
-
-    testimonialCard.innerHTML = `
-        <div class="testimonial-rating">${stars}</div>
-        <p class="testimonial-text">"${testimonialData.message}"</p>
-        <div class="testimonial-author">
-            <strong>${initials}.</strong>
-            <span>Verified Patient</span>
-        </div>
-    `;
-
-    testimonialsGrid.insertBefore(testimonialCard, testimonialsGrid.firstChild);
-
-    // Animate in
-    setTimeout(() => {
-        testimonialCard.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-        testimonialCard.style.opacity = '1';
-        testimonialCard.style.transform = 'translateY(0)';
-    }, 100);
-}
-
-// ====================================
-// Rating Stars
-// ====================================
-function initRatingStars() {
-    const ratingInput = document.getElementById('ratingInput');
-    const feedbackRating = document.getElementById('feedbackRating');
-    const stars = ratingInput.querySelectorAll('.star');
-
-    stars.forEach(star => {
-        star.addEventListener('click', function() {
-            const rating = this.getAttribute('data-rating');
-            feedbackRating.value = rating;
-
-            // Update star display
-            stars.forEach(s => {
-                const starRating = s.getAttribute('data-rating');
-                if (starRating <= rating) {
-                    s.classList.add('active');
-                } else {
-                    s.classList.remove('active');
-                }
-            });
-        });
-
-        // Hover effect
-        star.addEventListener('mouseenter', function() {
-            const rating = this.getAttribute('data-rating');
-            stars.forEach(s => {
-                const starRating = s.getAttribute('data-rating');
-                if (starRating <= rating) {
-                    s.style.color = 'var(--accent)';
-                } else {
-                    s.style.color = 'var(--gray-dark)';
-                }
-            });
-        });
-    });
-
-    // Reset on mouse leave
-    ratingInput.addEventListener('mouseleave', function() {
-        const currentRating = feedbackRating.value;
-        stars.forEach(s => {
-            const starRating = s.getAttribute('data-rating');
-            if (currentRating && starRating <= currentRating) {
-                s.style.color = 'var(--accent)';
-            } else {
-                s.style.color = 'var(--gray-dark)';
-            }
-        });
-    });
-}
-
-function resetRatingStars() {
-    const stars = document.querySelectorAll('.rating-input .star');
-    stars.forEach(s => {
-        s.classList.remove('active');
-        s.style.color = 'var(--gray-dark)';
-    });
-    document.getElementById('feedbackRating').value = '';
 }
 
 // ====================================
@@ -965,7 +801,6 @@ function isValidEmail(email) {
 function viewStoredData() {
     console.log('=== STORED DATA ===');
     console.log('Blogs:', JSON.parse(localStorage.getItem('blogs')) || []);
-    console.log('Testimonials:', JSON.parse(localStorage.getItem('testimonials')) || []);
     console.log('Contacts:', JSON.parse(localStorage.getItem('contacts')) || []);
 }
 
@@ -973,7 +808,6 @@ function viewStoredData() {
 function clearAllData() {
     if (confirm('Are you sure you want to clear all stored data? This cannot be undone.')) {
         localStorage.removeItem('blogs');
-        localStorage.removeItem('testimonials');
         localStorage.removeItem('contacts');
         location.reload();
     }
@@ -988,6 +822,6 @@ window.clearAllData = clearAllData;
 // ====================================
 console.log('%c🏥 Clinical Serenity Website', 'color: #0D7377; font-size: 20px; font-weight: bold;');
 console.log('%cAdmin Functions Available:', 'color: #FF6B6B; font-weight: bold;');
-console.log('- viewStoredData() - View all stored blog posts, testimonials, and contacts');
+console.log('- viewStoredData() - View all stored blog posts and contacts');
 console.log('- clearAllData() - Clear all stored data');
 console.log('%cWebsite ready!', 'color: #0D7377; font-weight: bold;');

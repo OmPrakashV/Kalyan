@@ -494,7 +494,7 @@ p {
 .about,
 .services,
 .blog,
-.testimonials,
+.google-reviews,
 .media,
 .contact,
 .footer {
@@ -781,7 +781,6 @@ p {
    Forms
    ==================================== */
 .blog-form,
-.feedback-form,
 .contact-form {
     display: flex;
     flex-direction: column;
@@ -884,108 +883,10 @@ p {
 /* ====================================
    Testimonials Section
    ==================================== */
-.testimonials {
+/* Google Reviews Section */
+section.google-reviews {
     padding: var(--section-padding) 0;
     background: linear-gradient(180deg, var(--cream) 0%, var(--white) 100%);
-}
-
-.feedback-form-section {
-    margin-bottom: 5rem;
-}
-
-.feedback-form-card {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 3rem;
-    background: var(--white);
-    border-radius: var(--card-radius);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-}
-
-.feedback-form-card h3 {
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.feedback-form-card > p {
-    text-align: center;
-    margin-bottom: 2rem;
-    color: var(--slate-light);
-}
-
-.rating-input {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    font-size: 2rem;
-    margin: 1rem 0;
-}
-
-.rating-input .star {
-    cursor: pointer;
-    color: var(--gray-dark);
-    transition: var(--transition-smooth);
-}
-
-.rating-input .star:hover,
-.rating-input .star.active {
-    color: var(--accent);
-    transform: scale(1.2);
-}
-
-.testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
-    gap: 2rem;
-}
-
-.testimonial-card {
-    padding: 2.5rem;
-    background: var(--white);
-    border-radius: var(--card-radius);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    transition: var(--transition-smooth);
-    border-left: 4px solid var(--primary-light);
-}
-
-.testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-}
-
-.testimonial-rating {
-    color: var(--accent);
-    font-size: 1.25rem;
-    margin-bottom: 1.5rem;
-    letter-spacing: 2px;
-}
-
-.testimonial-text {
-    font-style: italic;
-    color: var(--slate);
-    margin-bottom: 1.5rem;
-    line-height: 1.8;
-}
-
-.testimonial-author {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.testimonial-author strong {
-    color: var(--slate);
-    font-weight: 600;
-}
-
-.testimonial-author span {
-    color: var(--slate-light);
-    font-size: 0.9375rem;
-}
-
-/* Google Reviews */
-.google-reviews-section {
-    margin-bottom: 4rem;
 }
 
 .google-reviews-header {
@@ -2091,8 +1992,7 @@ p {
     }
 
     .services-grid,
-    .blog-grid,
-    .testimonials-grid {
+    .blog-grid {
         grid-template-columns: 1fr;
     }
 
@@ -2141,7 +2041,6 @@ p {
         text-align: center;
     }
 
-    .feedback-form-card,
     .blog-form-container,
     .contact-form-section {
         padding: 1.5rem;
@@ -2220,8 +2119,7 @@ p {
         font-size: 0.9375rem;
     }
 
-    .service-card,
-    .testimonial-card {
+    .service-card {
         padding: 1.75rem 1.25rem;
     }
 
@@ -2259,14 +2157,9 @@ p {
         padding: 1.25rem;
     }
 
-    .feedback-form-card,
     .blog-form-container,
     .contact-form-section {
         padding: 1.25rem;
-    }
-
-    .rating-input {
-        font-size: 1.75rem;
     }
 }
 
@@ -2341,10 +2234,6 @@ p {
     .blog-card:hover {
         transform: none;
         box-shadow: none;
-    }
-
-    .testimonial-card:hover {
-        transform: none;
     }
 
     .image-frame:hover {
@@ -2424,7 +2313,6 @@ p {
     .floating-shapes,
     .hero-cta,
     .blog-admin,
-    .feedback-form-section,
     .footer-social {
         display: none;
     }
